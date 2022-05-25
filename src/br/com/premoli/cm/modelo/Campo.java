@@ -3,6 +3,8 @@ package br.com.premoli.cm.modelo;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.premoli.cm.excecao.ExplosaoException;
+
 public class Campo {
 
 	// Posicionamento do campo
@@ -43,4 +45,94 @@ public class Campo {
 
 	}
 
+	void alternarMarcacao() {
+		if (!aberto) {
+			marcado = !marcado;
+		}
+	}
+
+	void minar() {
+		minado = true;
+	}
+
+	boolean abrir() {
+
+		if (!aberto && !marcado) {
+			aberto = true;
+
+			if (minado) {
+				throw new ExplosaoException();
+			}
+
+			if (vizinhacaSegura()) {
+				vizinhos.forEach(v -> v.abrir());
+			}
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	boolean vizinhacaSegura() {
+		return vizinhos.stream().noneMatch(v -> v.minado);
+	}
+
+	void setAberto(boolean aberto) {
+		this.aberto = aberto;
+	}
+
+	public boolean isMarcado() {
+		return marcado;
+	}
+
+	public boolean isAberto() {
+		return aberto;
+	}
+
+	public boolean isFechado() {
+		return !isAberto();
+	}
+
+	public boolean isMinado() {
+		return minado;
+	}
+
+	public int getLinha() {
+		return linha;
+	}
+
+	public int getColuna() {
+		return coluna;
+	}
+
+	boolean objetivoAlcancado() {
+		boolean desvendado = !minado && aberto;
+		boolean protegido = minado && marcado;
+		return desvendado || protegido;
+	}
+
+	long minasNaVizinhaca() {
+		return vizinhos.stream().filter(v -> v.minado).count();
+	}
+
+	void reiniciar() {
+		aberto = false;
+		minado = false;
+		marcado = false;
+	}
+
+	public String toString() {
+		if (marcado) {
+			return "x";
+		} else if (aberto && minado) {
+			return "*";
+		} else if (aberto && minasNaVizinhaca() > 0) {
+			return Long.toString(minasNaVizinhaca());
+		} else if (aberto) {
+			return " ";
+		} else {
+			return "?";
+		}
+	}
 }
